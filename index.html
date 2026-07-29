@@ -38,7 +38,7 @@
     />
     <meta
       property="og:title"
-      content="Stop buying 200 leads. Meet the few ready to sign."
+      content="Stop buying 200 leads. Meet clients qualified by automation."
     />
     <meta
       property="og:description"
@@ -1688,6 +1688,19 @@
       .consent.on .box {
         border-color: var(--gold);
       }
+      .consent-fine {
+        margin-top: 8px;
+        font: 400 10.5px/1.55 Archivo;
+        color: #6b6b6b;
+      }
+      .consent-fine a {
+        color: #8d8d8d;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .consent-fine a:hover {
+        color: var(--gold);
+      }
 
       .whocalls {
         margin-top: 16px;
@@ -2109,9 +2122,14 @@
              ib_modal_open, ib_lead_submit (conversion), ib_lead_error.
 
      LOADING: GTM (~90KB) and the Pixel (~70KB) are the heaviest things on this page and
-     neither paints a pixel. They are fetched AFTER first interaction, or 3.5s after load,
+     neither paints a pixel. They are fetched AFTER first interaction, or 1.2s after load,
      whichever comes first. Nothing is lost — dataLayer is a plain array and fbq's stub
-     queues calls, so events fired before the scripts land are replayed on arrival. -->
+     queues calls, so events fired before the scripts land are replayed on arrival.
+     1.2s (not longer) matters here specifically: fbq('track','PageView') below is queued
+     immediately, but the queued call only reaches Meta once fbevents.js actually loads —
+     a visitor who bounces before that never gets counted. mousemove/scroll/touchstart
+     already fire boot() well under a second for anyone who isn't dead-still, so this
+     fallback only covers someone who lands and closes the tab without moving at all. -->
     <script>
       window.dataLayer = window.dataLayer || [];
       !(function (f, b, e, v, n, t, s) {
@@ -2169,7 +2187,7 @@
         addEventListener(
           "load",
           function () {
-            setTimeout(boot, 3500);
+            setTimeout(boot, 1200);
           },
           { once: true },
         );
@@ -2283,7 +2301,7 @@
               loading="lazy"
               decoding="async"
               draggable="false"
-              alt="70% of ad leads are just window shopping. Wrong city. No budget. Abhi soch rahe hain. You paid for every click — and your team pays again in time."
+              alt="70% of ad leads are just window shopping. Wrong city. No budget. Abhi soch rahe hain. You paid for every click — and your team pays again in time. Stop buying leads, start meeting verified buyers."
             />
           </figure>
           <figure class="hcard shot">
@@ -2892,6 +2910,29 @@
             target="_blank"
             rel="noopener"
             >interiorbazzar.com</a
+          >
+          <a
+            href="mailto:help@interiorbazzar.com"
+            >help@interiorbazzar.com</a
+          >
+          <a href="tel:+918882314255">+91 88823 14255</a>
+        </div>
+        <!-- Required by Google Ads and Meta Ads policy whenever a page collects
+             personal data or runs remarketing pixels — both platforms' review
+             checks for a visible, working privacy policy link. Real, live pages
+             on the main site; not duplicated here so they can't drift out of sync. -->
+        <div class="l" style="margin-top: -4px">
+          <a
+            href="https://www.interiorbazzar.com/privacy-policy"
+            target="_blank"
+            rel="noopener"
+            >Privacy Policy</a
+          >
+          <a
+            href="https://www.interiorbazzar.com/terms-and-conditions"
+            target="_blank"
+            rel="noopener"
+            >Terms &amp; Conditions</a
           >
         </div>
         <div class="fine">
@@ -3996,14 +4037,17 @@
               '" type="tel" inputmode="numeric" placeholder="Mobile (WhatsApp)" autocomplete="tel" maxlength="17">' +
               "</div>" +
               /* Explicit, unticked consent — required under DPDP and by Meta/Google
-                 ad policy before we call or WhatsApp them. */
+                 ad policy before we call or WhatsApp them. The policy link sits
+                 OUTSIDE the button: an <a> can't nest inside a <button> — invalid
+                 HTML, and the tap would toggle the checkbox instead of navigating. */
               '<button type="button" id="fConsent" class="consent' +
               (s.consent ? " on" : "") +
               '" aria-pressed="' +
               (s.consent ? "true" : "false") +
               '"><span class="box">' +
               (s.consent ? "✓" : "") +
-              "</span><span>I agree that Interior bazzar may call and WhatsApp me about this enquiry. My details are used only for this enquiry and never sold.</span></button>"
+              "</span><span>I agree that Interior bazzar may call and WhatsApp me about this enquiry.</span></button>" +
+              '<div class="consent-fine">My details are used only for this enquiry, never sold. See our <a href="https://www.interiorbazzar.com/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a> &amp; <a href="https://www.interiorbazzar.com/terms-and-conditions" target="_blank" rel="noopener">Terms</a>.</div>'
             );
           }
 
