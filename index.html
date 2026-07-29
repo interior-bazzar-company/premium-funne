@@ -21,7 +21,7 @@
     </title>
     <meta
       name="description"
-      content="Stop buying 200 leads. We find, verify and assign interior clients — budget, scope, city and timeline confirmed — to one business per area."
+      content="Verified interior clients assigned to one business per area. Founding offer: ₹42,480 off, EMI in 3 parts, and a one-to-one account manager. Check if your city is still open."
     />
     <link
       rel="canonical"
@@ -38,11 +38,11 @@
     />
     <meta
       property="og:title"
-      content="Stop buying 200 leads. Meet clients qualified by automation."
+      content="Stop buying 200 leads. Get verified clients no competitor can call."
     />
     <meta
       property="og:description"
-      content="We find and verify interior clients — budget, scope, city, timeline — then assign each to ONE business. One Elite slot per area. Founding pricing, 12% off."
+      content="We verify every client — budget, scope, city, timeline — then assign each to ONE business. Founding offer: ₹42,480 off · EMI in 3 parts · one-to-one account manager."
     />
     <meta
       property="og:image"
@@ -417,6 +417,18 @@
       }
       /* highlight variant: same shape as the trust chips, gold accent so the
          one differentiator worth a second glance doesn't blend into the row */
+      .chip-link {
+        color: #b9b9b9;
+        border-color: #333;
+        text-decoration: none;
+        transition:
+          color 0.2s,
+          border-color 0.2s;
+      }
+      .chip-link:hover {
+        color: var(--gold);
+        border-color: rgba(245, 168, 0, 0.4);
+      }
       .chip-accent {
         color: var(--gold);
         border-color: rgba(245, 168, 0, 0.35);
@@ -424,6 +436,253 @@
         font-weight: 600;
       }
 
+      /* ── founding offer: compact strip in the hero ── */
+      .offerstrip {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        border: 1px solid rgba(245, 168, 0, 0.32);
+        background: linear-gradient(
+          180deg,
+          rgba(245, 168, 0, 0.08) 0%,
+          rgba(245, 168, 0, 0.03) 100%
+        );
+        border-radius: var(--r-m);
+        overflow: hidden;
+        margin-bottom: 18px;
+      }
+      .offerstrip .tag {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        background: var(--gold);
+        color: #111;
+        font: 800 8.5px/1 Archivo;
+        letter-spacing: 0.14em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        flex: none;
+      }
+      .offerstrip .items {
+        display: flex;
+        flex: 1;
+        min-width: 0;
+      }
+      .offerstrip .items > div {
+        flex: 1;
+        padding: 11px 8px;
+        text-align: center;
+        border-right: 1px solid rgba(245, 168, 0, 0.16);
+        min-width: 0;
+      }
+      .offerstrip .items > div:last-child {
+        border-right: none;
+      }
+      .offerstrip b {
+        display: block;
+        /* scales down on narrow phones so "₹42,480" never wraps mid-number */
+        font: 800 clamp(13px, 3.9vw, 15px)/1.1 Archivo;
+        color: var(--gold);
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+      }
+      .offerstrip span {
+        display: block;
+        font: 500 clamp(8.5px, 2.4vw, 9.5px)/1.3 Archivo;
+        color: #a5a5a5;
+        margin-top: 3px;
+        text-wrap: balance;
+      }
+      @media (max-width: 359px) {
+        .offerstrip .items > div {
+          padding: 10px 5px;
+        }
+      }
+
+      /* ── risk reversal, next to the price ── */
+      .riskbox {
+        margin-top: 14px;
+        border: 1px solid rgba(245, 168, 0, 0.28);
+        border-radius: var(--r-l);
+        background: var(--bg2);
+        padding: 14px 15px;
+      }
+      .riskbox .rh {
+        font: 700 9.5px Archivo;
+        letter-spacing: 0.12em;
+        color: var(--gold);
+        margin-bottom: 11px;
+      }
+      .rrow {
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+        padding: 7px 0;
+      }
+      .rrow i {
+        color: var(--gold);
+        font: 700 12px/1.5 Archivo;
+        font-style: normal;
+        flex: none;
+      }
+      .rrow span {
+        font: 400 12px/1.6 Archivo;
+        color: var(--mut);
+      }
+      .rrow b {
+        color: #e8e8e8;
+        font-weight: 600;
+      }
+
+      /* ── pre-form objection handling ── */
+      .objgrid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .obj {
+        border: 1px solid var(--line);
+        border-left: 2px solid var(--gold);
+        border-radius: 0 var(--r-m) var(--r-m) 0;
+        background: var(--bg2);
+        padding: 13px 15px;
+      }
+      .obj b {
+        display: block;
+        font: 700 13px/1.35 Archivo;
+        color: #fff;
+        margin-bottom: 5px;
+      }
+      .obj span {
+        display: block;
+        font: 400 12.5px/1.6 Archivo;
+        color: var(--mut);
+      }
+
+      /* ── directories comparison ── */
+      .vstable {
+        border: 1px solid var(--line);
+        border-radius: var(--r-l);
+        overflow: hidden;
+        background: var(--panel);
+      }
+      .vsrow {
+        display: grid;
+        grid-template-columns: 1.15fr 1fr 1.15fr;
+        gap: 8px;
+        padding: 12px 13px;
+        border-bottom: 1px solid var(--line3);
+        align-items: start;
+      }
+      .vsrow:last-child {
+        border-bottom: none;
+      }
+      .vsrow > span:first-child {
+        font: 500 11px/1.4 Archivo;
+        color: var(--mut2);
+      }
+      .vsrow > span:nth-child(2) {
+        font: 400 11.5px/1.4 Archivo;
+        color: #7a7a7a;
+      }
+      .vsrow > b {
+        font: 600 11.5px/1.4 Archivo;
+        color: #e8e8e8;
+      }
+      .vshead {
+        background: #131313;
+        border-bottom-color: #262626;
+      }
+      .vshead > span:nth-child(2) {
+        font: 700 9.5px Archivo;
+        letter-spacing: 0.1em;
+        color: #6d6d6d;
+        text-transform: uppercase;
+      }
+      .vshead > b {
+        font: 700 9.5px Archivo;
+        letter-spacing: 0.1em;
+        color: var(--gold);
+        text-transform: uppercase;
+      }
+
+      /* ── founding offer: full stack in the plans section ── */
+      .offerbox {
+        border: 1px solid rgba(245, 168, 0, 0.4);
+        border-radius: var(--r-xl);
+        background: linear-gradient(180deg, #14110c 0%, #0b0b0b 100%);
+        overflow: hidden;
+        margin-bottom: 16px;
+      }
+      .offerbox .oh {
+        padding: 12px 16px;
+        background: rgba(245, 168, 0, 0.1);
+        border-bottom: 1px solid rgba(245, 168, 0, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+      .offerbox .oh b {
+        font: 800 10px Archivo;
+        letter-spacing: 0.12em;
+        color: var(--gold);
+      }
+      .offerbox .oh span {
+        font: 600 9.5px Archivo;
+        letter-spacing: 0.06em;
+        color: #111;
+        background: var(--gold);
+        border-radius: 5px;
+        padding: 3px 7px;
+        white-space: nowrap;
+      }
+      .offerbox .ob {
+        padding: 6px 16px 16px;
+      }
+      .orow {
+        display: flex;
+        gap: 13px;
+        align-items: flex-start;
+        padding: 14px 0;
+        border-bottom: 1px solid #1c1c1c;
+      }
+      .orow:last-child {
+        border-bottom: none;
+      }
+      .orow .num {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid rgba(245, 168, 0, 0.5);
+        color: var(--gold);
+        font: 800 10px Archivo;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        margin-top: 1px;
+      }
+      .orow .txt {
+        flex: 1;
+        min-width: 0;
+      }
+      .orow .txt b {
+        display: block;
+        font: 700 14px/1.3 Archivo;
+        color: #fff;
+        margin-bottom: 3px;
+      }
+      .orow .txt b em {
+        font-style: normal;
+        color: var(--gold);
+      }
+      .orow .txt span {
+        display: block;
+        font: 400 12.5px/1.6 Archivo;
+        color: var(--mut);
+      }
 
       /* reveal */
       .rv {
@@ -2002,7 +2261,6 @@
             "name": "Interior bazzar",
             "url": "https://www.interiorbazzar.com",
             "email": "help@interiorbazzar.com",
-            "telephone": "+91-88823-14255",
             "description": "A dedicated interior platform that finds and verifies clients, then assigns each one to a single business — never resold to competitors.",
             "parentOrganization": {
               "@type": "Organization",
@@ -2067,6 +2325,14 @@
                 "acceptedAnswer": {
                   "@type": "Answer",
                   "text": "It depends on genuine demand in your city and category, and we won't pretend otherwise. On the call we give you the honest number for your area before you pay anything."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Do you guarantee I'll close these clients?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No — and be wary of anyone who does. We guarantee qualification, not closure. Every client we assign has confirmed budget, scope, city and timeline, and has agreed to a site visit before you ever hear the name. Whether the project signs depends on your design, your pricing and how fast your team follows up — that part is your business, and we won't pretend to control it. What we take off your plate is the part you should never have been paying for: chasing people who were never going to buy."
                 }
               },
               {
@@ -2237,14 +2503,24 @@
           <span class="dot"></span>DONE FOR YOU · INTERIOR BUSINESSES ONLY
         </div>
         <h1>
-          Stop buying 200 leads. Meet clients, qualified by
-          <span class="hl">automation</span>.
+          Stop buying 200 leads. Get verified clients
+          <span class="hl">no competitor can call</span>.
         </h1>
         <p>
-          You don't change how you work. We find the clients, verify them —
-          budget, scope, city, timeline — and assign each one to a single
-          business. In your area, that's you.
+          Automation filters every enquiry, a human confirms it on call — budget,
+          scope, city, timeline — and the one that survives is assigned to a
+          single business. In your area, that's you.
         </p>
+        <!-- The three levers that close this deal, above the fold and in rupees.
+             "12%" is abstract; "₹42,480 off" is a number an owner can picture. -->
+        <div class="offerstrip">
+          <div class="tag">FOUNDING</div>
+          <div class="items">
+            <div><b>₹42,480</b><span>off · 12%</span></div>
+            <div><b>3 parts</b><span>EMI, no lump sum</span></div>
+            <div><b>1-on-1</b><span>named manager</span></div>
+          </div>
+        </div>
         <div
           style="
             display: flex;
@@ -2254,7 +2530,7 @@
           "
         >
           <a class="btn btn-primary" href="#slot" data-go
-            >Check Slot Availability →</a
+            >Check if my area is open →</a
           >
           <a class="btn btn-ghost" href="#proof" data-go
             >See how we verify a client</a
@@ -2262,9 +2538,9 @@
         </div>
         <div class="chips">
           <span class="chip chip-accent">⚡ Automation</span>
-          <span class="chip">One Elite slot per area</span>
+          <span class="chip">1 business per city + category</span>
           <span class="chip">500+ businesses</span>
-          <span class="chip">★ 4.5 on Google</span>
+          <span class="chip" id="googleChip">★ 4.5 on Google</span>
           <span class="chip">Govt. registered · MSME</span>
         </div>
       </section>
@@ -2562,7 +2838,9 @@
               margin-bottom: 14px;
             "
           >
-            Per month · average across Delhi-NCR members, 2025–26
+            Per month · Delhi-NCR members, 2025–26. Your number depends on real
+            demand in your city and category — we give you that figure on the
+            call, before you pay anything.
           </div>
           <div
             style="height: 1px; background: #212121; margin-bottom: 14px"
@@ -2599,13 +2877,57 @@
         </div>
       </section>
 
+      <!-- VS DIRECTORIES -->
+      <section class="alt rv">
+        <div class="kicker">WHY NOT JUST USE A DIRECTORY</div>
+        <h2>Same enquiry. Sold eight times. That is the whole difference.</h2>
+        <p class="lead">
+          Directories are cheaper because you are one of many buyers of the same
+          name. Here is the honest side-by-side.
+        </p>
+        <div class="vstable">
+          <div class="vsrow vshead">
+            <span></span><span>Directories</span><b>Interior bazzar</b>
+          </div>
+          <div class="vsrow">
+            <span>Who else gets the number</span><span>4–8 businesses</span
+            ><b>Nobody. One business.</b>
+          </div>
+          <div class="vsrow">
+            <span>Who qualifies it</span><span>Nobody — you do</span
+            ><b>Our desk, before you hear the name</b>
+          </div>
+          <div class="vsrow">
+            <span>What you compete on</span><span>Price, from call one</span
+            ><b>Your work — you are the only quote</b>
+          </div>
+          <div class="vsrow">
+            <span>Budget &amp; timeline known</span><span>No</span
+            ><b>Confirmed on call</b>
+          </div>
+          <div class="vsrow">
+            <span>Your team's time</span><span>6 hrs a week dialling</span
+            ><b>Site visits only</b>
+          </div>
+          <div class="vsrow">
+            <span>What you pay for</span><span>Every click and contact</span
+            ><b>A fixed annual slot</b>
+          </div>
+        </div>
+        <div class="note">
+          Cheaper per name, far more expensive per project. That is why we do not
+          compete on price with them.
+        </div>
+      </section>
+
       <!-- SLOTS -->
       <section class="rv">
         <div class="kicker">SLOT STATUS</div>
-        <h2>One slot per area. Most metros are already spoken for.</h2>
+        <h2>One business per city, per category. Most metros are taken.</h2>
         <p class="lead">
-          When a city and category are taken, they stay taken for the year. This
-          is why we can promise exclusivity at all.
+          One turnkey slot in Gurugram. One modular-kitchen slot in Noida. Once a
+          city and category are taken they stay taken for the year — that is the
+          only way exclusivity can mean anything.
         </p>
         <form class="lookup" id="lookForm" autocomplete="off">
           <input
@@ -2632,6 +2954,50 @@
           Annual subscription, one slot per area. No per-lead billing, and never
           bidding against your own competitors.
         </p>
+
+        <!-- Offer stack, placed directly above the price. This is where the
+             "₹3 lakh?" objection fires, so the three answers to it sit here
+             rather than scattered down the page. -->
+        <div class="offerbox">
+          <div class="oh">
+            <b>FOUNDING MEMBER OFFER</b><span>ENDS WHEN YOUR AREA FILLS</span>
+          </div>
+          <div class="ob">
+            <div class="orow">
+              <div class="num">1</div>
+              <div class="txt">
+                <b>Save <em>₹42,480</em> — 12% off</b>
+                <span
+                  >₹2,99,999 becomes ₹2,63,999. Founding rate, locked for your
+                  full first year — not an introductory price that jumps at
+                  renewal.</span
+                >
+              </div>
+            </div>
+            <div class="orow">
+              <div class="num">2</div>
+              <div class="txt">
+                <b>Split it into <em>3 parts</em> — EMI</b>
+                <span
+                  >No single big cheque. Pay across 3 or 4 instalments on any
+                  major credit card, so this comes out of the projects it wins
+                  you — not out of this month's cash flow.</span
+                >
+              </div>
+            </div>
+            <div class="orow">
+              <div class="num">3</div>
+              <div class="txt">
+                <b>One person, <em>on your phone</em></b>
+                <span
+                  >A named account manager who knows your city, your segment and
+                  your team — not a ticket queue. You call one number and that
+                  person picks up.</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="plan top">
           <div class="ph">
@@ -2691,18 +3057,21 @@
                 >
               </div>
               <div>
-                <i>✓</i><span>Dedicated support · Business Booster: Pro</span>
+                <i>✓</i
+                ><span
+                  ><b>One-to-one account manager</b> — a named person for your
+                  city and segment, reachable on a direct number</span
+                >
               </div>
             </div>
             <div class="emi" data-total="311519">
-              <div class="lbl">ESTIMATE YOUR EMI</div>
+              <div class="lbl">SPLIT IT — NO LUMP SUM</div>
               <div class="segs">
-                <button type="button" data-m="3" class="on">3 months</button>
-                <button type="button" data-m="4">4 months</button>
+                <button type="button" data-m="3" class="on">3 parts</button>
+                <button type="button" data-m="4">4 parts</button>
               </div>
               <div class="emi-out">
-                <b>—</b>per month on ₹3,11,519 total · indicative, no-cost EMI
-                subject to your card issuer.
+                <b>—</b>per instalment · ₹3,11,519 total incl. GST. No-cost EMI on major credit cards, subject to your issuer.
               </div>
             </div>
           </div>
@@ -2721,6 +3090,16 @@
             </div>
             <div class="bestfor">
               BEST FOR MULTI-CITY AND MULTI-BRANCH FIRMS
+            </div>
+            <div
+              style="
+                font: 400 11.5px/1.55 Archivo;
+                color: var(--mut2);
+                margin-bottom: 12px;
+              "
+            >
+              Most single-city businesses take Elite. Choose this only if you
+              actually service more than one state.
             </div>
             <div class="feat">
               <div>
@@ -2764,16 +3143,42 @@
               </div>
             </div>
             <div class="emi" data-total="648999">
-              <div class="lbl">ESTIMATE YOUR EMI</div>
+              <div class="lbl">SPLIT IT — NO LUMP SUM</div>
               <div class="segs">
-                <button type="button" data-m="3" class="on">3 months</button>
-                <button type="button" data-m="4">4 months</button>
+                <button type="button" data-m="3" class="on">3 parts</button>
+                <button type="button" data-m="4">4 parts</button>
               </div>
               <div class="emi-out">
-                <b>—</b>per month on ₹6,48,999 total · indicative, no-cost EMI
-                subject to your card issuer.
+                <b>—</b>per instalment · ₹6,48,999 total incl. GST. No-cost EMI on major credit cards, subject to your issuer.
               </div>
             </div>
+          </div>
+        </div>
+
+        <div class="riskbox">
+          <div class="rh">WHAT YOU ARE PROTECTED FROM</div>
+          <div class="rrow">
+            <i>✓</i
+            ><span
+              ><b>You pay nothing until your area is confirmed.</b> City and
+              category are checked on the call first. If it's taken, we stop
+              there.</span
+            >
+          </div>
+          <div class="rrow">
+            <i>✓</i
+            ><span
+              ><b>You get the honest number before you pay.</b> We quote real
+              demand for your city — agar demand nahi hai, hum saaf bol denge.</span
+            >
+          </div>
+          <div class="rrow">
+            <i>✓</i
+            ><span
+              ><b>A bad client doesn't cost you an allocation.</b> If an assigned
+              client turns out unreachable or not genuine, we re-verify and it
+              does not count against you.</span
+            >
           </div>
         </div>
 
@@ -2790,7 +3195,7 @@
           >
             <span>Founding pricing shown above</span
             ><span style="color: var(--gold); white-space: nowrap"
-              >12% off · limited</span
+              >ends when your area fills</span
             >
           </div>
           <p>
@@ -2840,17 +3245,46 @@
         </div>
       </section>
 
+      <!-- OBJECTIONS (pre-form) -->
+      <section class="rv">
+        <div class="kicker">THE THREE THINGS PEOPLE ASK US</div>
+        <div class="objgrid">
+          <div class="obj">
+            <b>"Is it really exclusive?"</b>
+            <span
+              >Yes. One client, one business — never resold to the firm down the
+              road. Break that and we have no product.</span
+            >
+          </div>
+          <div class="obj">
+            <b>"What if my area is taken?"</b>
+            <span
+              >We tell you on the call and stop there. We won't sell you a plan
+              that competes with a member we already have.</span
+            >
+          </div>
+          <div class="obj">
+            <b>"How many will I actually get?"</b>
+            <span
+              >Depends on real demand in your city and category. We give you that
+              number on the call — before you pay anything. Agar demand nahi hai,
+              hum saaf bol denge.</span
+            >
+          </div>
+        </div>
+      </section>
+
       <!-- WIZARD -->
       <section id="slot">
         <div id="slotTeaser">
           <div class="kicker">CHECK SLOT AVAILABILITY</div>
           <h2>Is your area still open?</h2>
           <p class="lead">
-            Five quick taps. We only take on businesses we can genuinely fill a
+            Five quick steps. We only take on businesses we can genuinely fill a
             pipeline for — so these answers decide whether we call you at all.
           </p>
           <button type="button" class="btn btn-primary" id="teaserBtn">
-            Check Slot Availability →
+            Check if my area is open →
           </button>
           <div class="helper" id="teaserNote">
             No email, no long form. Contact details come last.
@@ -2861,8 +3295,7 @@
           <div class="fail" style="margin-top: 0">
             <b>The slot checker needs JavaScript.</b> It's switched off in this
             browser — call or WhatsApp us and we'll check your area on the spot.
-            <a class="btn btn-primary" style="margin-top: 12px" href="tel:+918882314255">Call +91 88823 14255</a>
-            <a class="btn btn-ghost" style="margin-top: 10px" href="https://wa.me/918882314255?text=Hi%2C%20I%20want%20to%20check%20slot%20availability%20for%20my%20city.">Message us on WhatsApp</a>
+            <a class="btn btn-primary" style="margin-top: 12px" href="https://wa.me/918882314255?text=Hi%2C%20I%20want%20to%20check%20slot%20availability%20for%20my%20city.">Message us on WhatsApp</a>
           </div>
         </noscript>
       </section>
@@ -2915,7 +3348,6 @@
             href="mailto:help@interiorbazzar.com"
             >help@interiorbazzar.com</a
           >
-          <a href="tel:+918882314255">+91 88823 14255</a>
         </div>
         <!-- Required by Google Ads and Meta Ads policy whenever a page collects
              personal data or runs remarketing pixels — both platforms' review
@@ -2965,8 +3397,8 @@
 
     <div id="bar">
       <div>
-        <div id="barTxt">Founding pricing live · one slot per area</div>
-        <a id="barCta" href="#slot" data-go>Check Slot Availability</a>
+        <div id="barTxt">₹42,480 off · EMI in 3 parts · 1 slot per area</div>
+        <a id="barCta" href="#slot" data-go>Check my area</a>
       </div>
     </div>
     <div id="toast" role="status" aria-live="polite"></div>
@@ -2985,9 +3417,17 @@
         var CONFIG = {
           leadEndpoint: "https://formspree.io/f/xwvjvrjr",
           whatsappNumber: "918882314255",
-          phone: "+918882314255",
-          phoneLabel: "+91 88823 14255",
+          /* Phone intentionally disabled: this funnel qualifies through the form,
+             not inbound calls. Setting these re-enables the click-to-call button on
+             the success screen and the send-failure fallback. */
+          phone: "",
+          phoneLabel: "",
           storageKey: "ib_premium_funnel_v1",
+          /* Paste your Google Business Profile review URL here and the "★ 4.5 on
+             Google" chip becomes a clickable proof link. Left empty on purpose —
+             an unverifiable rating is a claim, a linked one is evidence, but a
+             BROKEN link is worse than either, so nothing renders until it's set. */
+          googleReviewsUrl: "",
           // Mobile form opens as a bottom sheet from every CTA. Set to e.g. 60 to ALSO
           // auto-open it once per session after the visitor passes 60% of the page.
           // 0 = never auto-open (recommended for a high-ticket B2B offer).
@@ -3030,6 +3470,20 @@
         }
         track("ib_page_view", { page_variant: "premium" });
 
+        /* Ratings convert far better as verifiable links than as claims. */
+        (function () {
+          var chip = $("#googleChip");
+          if (!chip || !CONFIG.googleReviewsUrl) return;
+          var a = document.createElement("a");
+          a.className = "chip chip-link";
+          a.id = "googleChip";
+          a.href = CONFIG.googleReviewsUrl;
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.textContent = "★ 4.5 on Google →";
+          chip.replaceWith(a);
+        })();
+
         function toast(msg, ms) {
           var t = $("#toast");
           t.textContent = msg;
@@ -3056,13 +3510,13 @@
 
         var REVIEWS = [
           [
-            "Perfekte Küchen",
-            "Modular Kitchen",
-            "PK",
-            "Mr. Kamal Mittal",
-            "Delhi NCR · Mar 2026",
+            "Vishal Interior",
+            "Turnkey Interiors",
+            "VI",
+            "Mr. Vishal Sharma",
+            "Faridabad · Jan 2026",
             "★ 5.0",
-            "I was unsure at first. Three months in, the difference is simple — the people who call me back actually have a project and a budget.",
+            "Two full-home projects closed in our first quarter — ₹19L between them. The subscription paid back on the first one.",
           ],
           [
             "Hashmi Infrabuild",
@@ -3074,13 +3528,13 @@
             "Pehle 200 leads aate the aur 5 kaam ke nikalte the. Ab jo aata hai wo genuine hota hai, so my team's whole day changed.",
           ],
           [
-            "Vishal Interior",
-            "Turnkey Interiors",
-            "VI",
-            "Mr. Vishal Sharma",
-            "Faridabad · Jan 2026",
+            "Perfekte Küchen",
+            "Modular Kitchen",
+            "PK",
+            "Mr. Kamal Mittal",
+            "Delhi NCR · Mar 2026",
             "★ 5.0",
-            "Two full-home projects closed in our first quarter — ₹19L between them. The subscription paid back on the first one.",
+            "I was unsure at first. Three months in, the difference is simple — the people who call me back actually have a project and a budget.",
           ],
           [
             "Hightech Windows Blind",
@@ -3120,6 +3574,10 @@
             "It depends on genuine demand in your city and category, and we won't pretend otherwise. On the call we give you the honest number for your area before you pay anything.",
           ],
           [
+            "Do you guarantee I'll close these clients?",
+            "No — and be wary of anyone who does. We guarantee qualification, not closure. Every client we assign has confirmed budget, scope, city and timeline, and has agreed to a site visit before you ever hear the name. Whether the project signs depends on your design, your pricing and how fast your team follows up — that part is your business, and we won't pretend to control it. What we take off your plate is the part you should never have been paying for: chasing people who were never going to buy.",
+          ],
+          [
             "How soon do clients start arriving?",
             "Once your profile and portfolio are verified, assignments begin as clients come in — there is no waiting list.",
           ],
@@ -3144,12 +3602,12 @@
         var SLOTS = [
           ["Gurugram", "Turnkey interiors", "1 LEFT", "left"],
           ["Noida", "Modular kitchen", "TAKEN", "taken"],
-          ["Ghaziabad", "Furnishing", "2 LEFT", "left"],
+          ["Ghaziabad", "Furnishing", "1 LEFT", "left"],
           ["Delhi", "Turnkey interiors", "1 LEFT", "left"],
           ["Faridabad", "All segments", "TAKEN", "taken"],
           ["Jaipur", "All segments", "OPEN", "open"],
           ["Lucknow", "All segments", "OPEN", "open"],
-          ["Chandigarh", "Modular kitchen", "2 LEFT", "left"],
+          ["Chandigarh", "Modular kitchen", "1 LEFT", "left"],
         ];
 
         var CHAT = [
@@ -4126,7 +4584,7 @@
               '<div class="wz-intro">' +
               '<div class="kicker">CHECK SLOT AVAILABILITY</div>' +
               "<h2>Is your area still open?</h2>" +
-              '<p class="lead">Five quick taps. We only take on businesses we can genuinely fill a pipeline for — so these answers decide whether we call you at all.</p>' +
+              '<p class="lead">Five quick steps. We only take on businesses we can genuinely fill a pipeline for — so these answers decide whether we call you at all.</p>' +
               "</div>" +
               '<div class="bars">' +
               [1, 2, 3, 4, 5]
@@ -4152,7 +4610,7 @@
               '<button type="button" class="btn btn-primary' +
               (valid(s.step) ? "" : " off") +
               '" id="nextBtn">' +
-              (s.step === 5 ? "Check Slot Availability →" : "Continue →") +
+              (s.step === 5 ? "Check my area & lock 12% off →" : "Continue →") +
               "</button>" +
               "</div>" +
               '<div class="helper">' +
@@ -4655,8 +5113,8 @@
                 "Step " + s.step + " of 5 — finish your slot check";
               c.textContent = "Resume →";
             } else {
-              t.textContent = "Founding pricing live · one slot per area";
-              c.textContent = "Check Slot Availability";
+              t.textContent = "₹42,480 off · EMI in 3 parts · 1 slot per area";
+              c.textContent = "Check my area";
             }
 
             var st = $("#sheetStep"),
@@ -4686,7 +5144,7 @@
                 ? "View your request"
                 : s.step > 1
                   ? "Resume step " + s.step + " of 5 →"
-                  : "Check Slot Availability →";
+                  : "Check if my area is open →";
           }
 
           render();
