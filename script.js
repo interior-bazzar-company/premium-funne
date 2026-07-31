@@ -11,9 +11,14 @@
         var CONFIG = {
           leadEndpoint: "https://formspree.io/f/xwvjvrjr",
           whatsappNumber: "918882314255",
-          /* Phone intentionally disabled: this funnel qualifies through the form,
-             not inbound calls. Setting these re-enables the click-to-call button on
-             the success screen and the send-failure fallback. */
+          /* "Call now" on the success screen dials the rep this lead was routed
+             to, so the first call lands on the person who already owns it. This
+             desk number is the last resort — used only when the round-robin API
+             didn't answer and nothing was stored from an earlier submission. */
+          fallbackPhone: "918882314255",
+          /* Set `phone` to pin every call button to one fixed line instead,
+             overriding round-robin routing. `phoneLabel`, when set, also shows
+             the "we will call you from" card above the buttons. */
           phone: "",
           phoneLabel: "",
           storageKey: "ib_premium_funnel_v1",
@@ -124,7 +129,6 @@
 
         /* ───────── data ───────── */
         var LOGOS = [
-          ["Perfekte Küchen", "PK"],
           ["Hashmi Infrabuild", "HI"],
           ["Hightech Windows", "HW"],
           ["AR Furnishing", "AR"],
@@ -156,15 +160,6 @@
             "Pehle 200 leads aate the aur 5 kaam ke nikalte the. Ab jo aata hai wo genuine hota hai, so my team's whole day changed.",
           ],
           [
-            "Perfekte Küchen",
-            "Modular Kitchen",
-            "PK",
-            "Mr. Kamal Mittal",
-            "Delhi NCR · Mar 2026",
-            "★ 5.0",
-            "I was unsure at first. Three months in, the difference is simple — the people who call me back actually have a project and a budget.",
-          ],
-          [
             "Hightech Windows Blind",
             "Interior Decor",
             "HW",
@@ -191,7 +186,7 @@
           ],
           [
             "How do you qualify a client before sending?",
-            "Every enquiry passes checks on interest, intent, budget, city and timeline, and is then confirmed by a direct call from our desk. Most enquiries never survive it — that filtering is exactly what you are paying for.",
+            "Every enquiry passes checks on interest, intent, urgency, city and scope, and is then confirmed by a direct call from our desk. Most enquiries never survive it — that filtering is exactly what you are paying for. We do not put a verified rupee figure on a client — numbers only become real once you sit with them — so we qualify the things that can be checked honestly.",
           ],
           [
             "Is the client really exclusive to me?",
@@ -203,7 +198,7 @@
           ],
           [
             "Do you guarantee I'll close these clients?",
-            "No — and be wary of anyone who does. We guarantee qualification, not closure. Every client we assign has confirmed budget, scope, city and timeline, and has agreed to a site visit before you ever hear the name. Whether the project signs depends on your design, your pricing and how fast your team follows up — that part is your business, and we won't pretend to control it. What we take off your plate is the part you should never have been paying for: chasing people who were never going to buy.",
+            "No — and be wary of anyone who does. We guarantee qualification, not closure. Every client we assign has confirmed interest, intent, urgency, city and scope, and has agreed to a site visit before you ever hear the name. We do not claim to have verified their budget — nobody honestly can over a phone call, and the real number only settles once you sit with them. Whether the project signs depends on your design, your pricing and how fast your team follows up — that part is your business, and we won't pretend to control it. What we take off your plate is the part you should never have been paying for: chasing people who were never going to buy.",
           ],
           [
             "How soon do clients start arriving?",
@@ -239,14 +234,17 @@
         ];
 
         var CHAT = [
+          /* The desk asks what it can actually verify — interest, intent and
+             urgency. Money is deliberately not scripted here: we don't claim a
+             confirmed budget, and the demo shouldn't imply one. */
           [
             "them",
-            "Hi Rohan — you enquired about full interiors for a 3BHK in Gurugram. Quick one: what budget range are you planning?",
+            "Hi Rohan — you enquired about full interiors for a 3BHK in Gurugram. Quick one: how soon are you planning to start?",
           ],
-          ["me", "8–10 lakh, 3 hafte me start karna hai"],
+          ["me", "3 hafte me start karna hai, poora ghar karwana hai"],
           [
             "them",
-            "Perfect fit. Our designer can visit your site tomorrow at 5pm — shall I confirm?",
+            "Perfect. Our designer can visit your site tomorrow at 5pm and take the numbers with you directly — shall I confirm?",
           ],
           ["me", "Haan, confirm kar dijiye"],
           ["tag", "VERIFIED · VISIT BOOKED · ASSIGNED TO ONE BUSINESS"],
@@ -673,13 +671,39 @@
         $$(".emi").forEach(function (box) {
           var total = parseInt(box.getAttribute("data-total"), 10);
           var out = $("b", $(".emi-out", box));
+          var note = $(".emi-note", box);
+          var save = parseInt(box.getAttribute("data-save"), 10);
+          var totalFmt = "₹" + total.toLocaleString("en-IN");
+          /* The total already has the founding discount taken off it. Naming the
+             saving on the same line stops the figure reading as full price. */
+          var afterDiscount =
+            " total incl. GST" +
+            (save
+              ? ", after your ₹" +
+                save.toLocaleString("en-IN") +
+                " founding discount. "
+              : ". ");
           function calc(m) {
             out.textContent =
               "₹" + Math.round(total / m).toLocaleString("en-IN");
+            if (!note) return;
+            /* One Time shows the full amount — calling that "per instalment"
+               would read as a monthly figure and misprice the plan. */
+            note.textContent =
+              m === 1
+                ? "paid once · " +
+                  totalFmt +
+                  afterDiscount +
+                  "Any major credit card, UPI or bank transfer."
+                : "per instalment · " +
+                  totalFmt +
+                  afterDiscount +
+                  "No-cost EMI on major credit cards, subject to your issuer.";
           }
-          $$("button", box).forEach(function (b) {
+          var btns = $$("button", box);
+          btns.forEach(function (b) {
             b.addEventListener("click", function () {
-              $$("button", box).forEach(function (x) {
+              btns.forEach(function (x) {
                 x.classList.remove("on");
               });
               b.classList.add("on");
@@ -687,7 +711,10 @@
               buzz(6);
             });
           });
-          calc(3);
+          /* seed from whichever button the markup marks as selected, so the
+             default duration lives in one place */
+          var first = $("button.on", box) || btns[0];
+          if (first) calc(parseInt(first.getAttribute("data-m"), 10));
         });
 
         /* ───────── reveal on scroll + counters + chat ───────── */
@@ -834,12 +861,15 @@
             "A CRM",
             "Nothing fixed",
           ];
+          /* Business type, not product category — the values sales routes on.
+             The payload key stays `segment` so Formspree filters, the _subject
+             line and every lead_* analytics param keep working. */
           var SEGS = [
-            "Turnkey interiors",
-            "Modular kitchen",
-            "Furniture",
-            "Decor & furnishing",
-            "Windows & blinds",
+            "Residential",
+            "Commercial",
+            "Industrial",
+            "Turnkey",
+            "Sanitary Related",
           ];
           var TIMES = ["This month", "In 1–3 months", "Just exploring"];
           var CAPS = ["Yes, always", "Usually", "No, we're stretched"];
@@ -910,6 +940,11 @@
                     s.sentAt = "";
                   }
                 }
+                /* Drafts saved before "Deals In" replaced the old product
+                   categories hold retired values like "Modular kitchen". They
+                   pass valid() but match no button, so the visitor would see an
+                   unanswered step and submit a dead category — clear and re-ask. */
+                if (s.segment && SEGS.indexOf(s.segment) === -1) s.segment = "";
               }
             }
           } catch (e) {}
@@ -982,7 +1017,7 @@
                 : "Tell us how follow-up is handled.";
             if (step === 4) {
               if (!s.city.trim()) return "Enter your city.";
-              if (!s.segment) return "Pick your main segment.";
+              if (!s.segment) return "Pick what your business deals in.";
               if (!s.timeline) return "Pick a timeline.";
               return "Answer the 48-hour visit question.";
             }
@@ -1084,7 +1119,7 @@
                 '<input class="field" id="fCity" aria-label="Your city" value="' +
                 esc(s.city) +
                 '" placeholder="City — e.g. Gurugram" autocomplete="address-level2" style="margin-bottom:16px">' +
-                '<div class="qs2" style="margin-top:0">Your main segment</div>' +
+                '<div class="qs2" style="margin-top:0">Deals In</div>' +
                 '<div class="opts wrap" style="margin-bottom:4px">' +
                 optList(SEGS, "segment", { sm: true }) +
                 "</div>" +
@@ -1143,7 +1178,7 @@
               ["Business", s.business],
               ["Contact", s.name + " · " + s.phone],
               ["City", s.city],
-              ["Segment", s.segment],
+              ["Deals in", s.segment],
               ["Monthly enquiries", s.volume],
               ["Typical project", s.ticket],
               ["Start", s.timeline],
@@ -1190,10 +1225,15 @@
               (CONFIG.whatsappNumber
                 ? '<button type="button" class="btn btn-primary" id="waBtn" style="margin-top:16px">Send on WhatsApp too →</button>'
                 : "") +
-              (CONFIG.phone
-                ? '<a class="btn btn-ghost" style="margin-top:10px" href="tel:' +
-                  CONFIG.phone +
-                  '">Call us now</a>'
+              /* Call now sits directly under WhatsApp — full width, same 10px
+                 rhythm as the buttons around it, so the two channels read as
+                 one pair and "start a new enquiry" stays visibly tertiary. */
+              (callNumber()
+                ? '<a class="btn btn-call" id="callBtn" style="margin-top:10px" href="tel:' +
+                  callNumber() +
+                  '">Call now · ' +
+                  callLabel() +
+                  "</a>"
                 : "") +
               '<button type="button" class="btn btn-ghost" id="againBtn" style="margin-top:10px">Start a new enquiry</button>' +
               "</div>"
@@ -1368,8 +1408,24 @@
                 render();
                 scrollToForm();
               });
+            /* Both post-submission channels are tracked, so the success screen
+               reports which one a converted lead actually reaches for. */
             var wa = $("#waBtn");
-            if (wa) wa.addEventListener("click", openWhatsApp);
+            if (wa)
+              wa.addEventListener("click", function () {
+                track("ib_wa_click", { where: "success", lead_tier: tier() });
+                openWhatsApp();
+              });
+            var cb = $("#callBtn");
+            if (cb)
+              cb.addEventListener("click", function () {
+                track("ib_call_click", {
+                  where: "success",
+                  lead_tier: tier(),
+                  call_number: callNumber(),
+                });
+                buzz(10);
+              });
           }
 
           function refreshCta() {
@@ -1547,7 +1603,7 @@
               p.phone +
               "\nCity: " +
               p.city +
-              "\nSegment: " +
+              "\nDeals in: " +
               p.segment +
               "\nEnquiries/mo: " +
               p.volume +
@@ -1567,6 +1623,34 @@
               p.role +
               (p.approver ? "\nApprover: " + p.approver : "")
             );
+          }
+
+          /* Number behind every call button, most specific first: a pinned
+             CONFIG.phone, then the rep this lead was routed to, then the rep
+             stored on the last submission (a reload clears `routedPhone` but
+             the success screen still has to dial someone), then the desk. */
+          function callNumber() {
+            var p = (CONFIG.phone || routedPhone || "").replace(/\D/g, "");
+            if (!p) {
+              try {
+                var last = JSON.parse(
+                  localStorage.getItem(CONFIG.storageKey + "_last") || "null",
+                );
+                p = ((last && last.routed_phone) || "").replace(/\D/g, "");
+              } catch (e) {}
+            }
+            if (!p) p = (CONFIG.fallbackPhone || "").replace(/\D/g, "");
+            if (!p) return "";
+            if (p.length === 10) p = "91" + p;
+            return "+" + p;
+          }
+          function callLabel() {
+            if (CONFIG.phoneLabel) return CONFIG.phoneLabel;
+            var n = callNumber(),
+              d = n.replace(/^\+91/, "");
+            return d.length === 10
+              ? "+91 " + d.slice(0, 5) + " " + d.slice(5)
+              : n;
           }
 
           function openWhatsApp() {
@@ -1685,12 +1769,15 @@
                   wa.addEventListener("click", openWhatsApp);
                   d.appendChild(wa);
                 }
-                if (CONFIG.phone) {
+                if (callNumber()) {
                   var cl = document.createElement("a");
-                  cl.className = "btn btn-ghost";
+                  cl.className = "btn btn-call";
                   cl.style.marginTop = "10px";
-                  cl.href = "tel:" + CONFIG.phone;
-                  cl.textContent = "Or call us: " + CONFIG.phoneLabel;
+                  cl.href = "tel:" + callNumber();
+                  cl.textContent = "Or call us: " + callLabel();
+                  cl.addEventListener("click", function () {
+                    track("ib_call_click", { where: "send_failure" });
+                  });
                   d.appendChild(cl);
                 }
                 host.appendChild(d);

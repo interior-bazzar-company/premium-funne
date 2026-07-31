@@ -695,6 +695,23 @@
         transform: scale(0.975);
         border-color: #585858;
       }
+      /* Success-screen "Call now". Sits directly under the filled WhatsApp
+         button, so it takes the gold as an outline instead of a fill — same
+         height and rhythm as .btn-ghost, but clearly a second real CTA rather
+         than the tertiary "start a new enquiry" control below it. */
+      .btn-call {
+        height: 48px;
+        border: 1px solid #3a3323;
+        background: rgba(245, 168, 0, 0.06);
+        color: var(--gold);
+        font-weight: 700;
+        font-size: 13.5px;
+      }
+      .btn-call:active {
+        transform: scale(0.975);
+        border-color: var(--gold);
+        background: rgba(245, 168, 0, 0.11);
+      }
       .btn[disabled],
       .btn.off {
         background: #171717;
