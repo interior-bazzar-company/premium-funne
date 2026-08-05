@@ -177,3 +177,80 @@ Discounts verified against the existing sublines and the GST maths: `₹3,53,999
 3. EMI toggle on both plan cards — confirm the note switches between "paid once" and "per instalment".
 4. Leak rail at 360px, 430px and desktop — confirm the new `av-1 · av-3 · av-2` order and that arrows/dots still track.
 5. Step 4 of the form with an older draft in `localStorage` — confirm the Deals In step is re-asked rather than pre-filled with a retired value.
+
+---
+
+## Rev 1.2 — form fixes
+
+Date: 2026-08-05 · Scope: the 5-step wizard in `script.js` (+ one rule in `styles.css`)
+
+### 1. "Deals In" is now multi-select
+
+An owner who does residential *and* turnkey had to pick one and under-report
+what they can take on, which then routed them into a single slot.
+
+- `s.segment` is now an **array**; the option list renders with `{multi:true}`,
+  matching the "Where do those enquiries come from?" step.
+- `valid(4)` checks `s.segment.length > 0`; `missing(4)` asks for "at least one".
+- `payload()` joins it to `"Residential, Turnkey"` — the wire format is a string,
+  exactly as before, so **Formspree, `_subject`, `waText()` and `lead_segment`
+  are unchanged**. The success summary joins with `·`.
+
+### 2. Project size — five bands
+
+Interior work clusters below ₹15L, and a single `₹3 – 8 lakh` bucket hid the
+line where this pays back. `TICKETS` is now:
+
+`Under ₹5 lakh` · `₹5 – 15 lakh` · `₹15 – 25 lakh` · `₹25 – 50 lakh` · `₹50 lakh+`
+
+`score()` maps them `0 / 2 / 3 / 4 / 5` — the same 0–5 range as before, so
+`tier()` thresholds and the Ads/Meta conversion values are untouched. Step name
+`PROJECT VALUE` → `PROJECT SIZE`; options render `sm` so five rows still fit one
+screen.
+
+### 3. The "reload" glitch on the contact step
+
+**Cause:** picking a role ran `if (k === "role") return render();` — a full
+`innerHTML` rebuild of the wizard, purely to reveal the approver field for
+"Team member". That replayed the `.step` slide-in animation (reads as a page
+reload), dropped focus and the mobile keyboard, and reset the bottom sheet's
+scroll to the top of the step. The early `return` also skipped `save()`, so the
+role never reached the draft.
+
+**Fix:** the approver input lives in a permanent `#approverWrap`, filled and
+emptied in place by `syncApprover()`. No re-render, no animation, nothing above
+it moves. It fades in via `.field.reveal` (disabled under
+`prefers-reduced-motion`). Switching away from "Team member" also clears
+`s.approver`, so a name typed by mistake never reaches sales.
+
+### 4. Stale drafts
+
+Restore now migrates an old single-choice `segment` string into the array,
+drops any option that no longer exists, and clears a retired project band. If
+that leaves a *passed* step unanswered the wizard walks back to it (`step > 3`
+with no ticket → step 3), instead of letting a blank field sail through to
+sales — `valid()` only ever guards the step in front of the visitor.
+
+### Rev 1.2 QA
+
+Driven through jsdom against the real `index.html` + `script.js`.
+
+| Check | Result |
+| --- | --- |
+| `node --check script.js` | Pass |
+| Multi-select segment: toggle on/off, next gated on ≥1 | Pass |
+| 5 project bands, single-select, values match spec | Pass |
+| Role click does **not** replace `#stepBody` or `#fBusiness` | Pass |
+| Typed contact values survive a role change | Pass |
+| Approver appears/disappears in place; gating follows | Pass |
+| Role + cleared approver persist to the draft | Pass |
+| Legacy draft (string segment, retired band) → walked back to step 3 | Pass |
+| Submitted payload: `segment` joined string, band, `+91` phone | Pass |
+| Success summary rows: "Deals in", "Typical project" | Pass |
+
+### Manual verification still required
+
+1. Real phone, step 5 — tap through all four roles and confirm nothing flashes
+   or scrolls, in both the inline form and the mobile bottom sheet.
+2. Keyboard open on "Business name", then tap a role — the keyboard should stay.
+3. Step 4 at 360px — confirm the five multi-select segment chips wrap cleanly.

@@ -849,11 +849,16 @@
             "₹75k – 2L",
             "Nothing right now",
           ];
+          /* Project size bands. Interior work clusters below ₹15L, so the two
+             bands that decide whether this pays back sit in the middle — a
+             single "₹3–8L" bucket hid that. Labels are also what score() and
+             the sales _subject line read, so they must match exactly. */
           var TICKETS = [
-            "Under ₹3 lakh",
-            "₹3 – 8 lakh",
-            "₹8 – 20 lakh",
-            "₹20 lakh+",
+            "Under ₹5 lakh",
+            "₹5 – 15 lakh",
+            "₹15 – 25 lakh",
+            "₹25 – 50 lakh",
+            "₹50 lakh+",
           ];
           var SYSTEMS = [
             "Excel / notebook",
@@ -862,8 +867,11 @@
             "Nothing fixed",
           ];
           /* Business type, not product category — the values sales routes on.
-             The payload key stays `segment` so Formspree filters, the _subject
-             line and every lead_* analytics param keep working. */
+             Multi-select: most owners run more than one segment (residential +
+             turnkey is the norm), and forcing one answer made them under-report
+             what they can actually take on. The payload key stays `segment` so
+             Formspree filters, the _subject line and every lead_* analytics
+             param keep working — it is joined to a string in payload(). */
           var SEGS = [
             "Residential",
             "Commercial",
@@ -882,7 +890,7 @@
           var NAMES = [
             "VOLUME",
             "LEAD SOURCES",
-            "PROJECT VALUE",
+            "PROJECT SIZE",
             "AREA & TIMING",
             "CONTACT",
           ];
@@ -902,7 +910,7 @@
             ticket: "",
             system: "",
             city: "",
-            segment: "",
+            segment: [],
             timeline: "",
             capacity: "",
             role: "",
@@ -940,11 +948,24 @@
                     s.sentAt = "";
                   }
                 }
-                /* Drafts saved before "Deals In" replaced the old product
-                   categories hold retired values like "Modular kitchen". They
-                   pass valid() but match no button, so the visitor would see an
-                   unanswered step and submit a dead category — clear and re-ask. */
-                if (s.segment && SEGS.indexOf(s.segment) === -1) s.segment = "";
+                /* Old drafts carry retired answers — a single-choice segment
+                   string, or a project band from the previous ladder. They pass
+                   valid() but match no button, so the visitor would see an
+                   unanswered step and submit a dead value. Migrate what still
+                   exists, drop what doesn't, and re-ask. */
+                if (typeof s.segment === "string")
+                  s.segment = s.segment ? [s.segment] : [];
+                if (!Array.isArray(s.segment)) s.segment = [];
+                s.segment = s.segment.filter(function (v) {
+                  return SEGS.indexOf(v) > -1;
+                });
+                if (s.ticket && TICKETS.indexOf(s.ticket) === -1) s.ticket = "";
+                /* Clearing an answer on a step they had already passed would
+                   otherwise sail through — valid() is only checked on the step
+                   in front of them. Walk them back to the earliest step that is
+                   now unanswered so nothing reaches sales blank. */
+                if (!s.ticket && s.step > 3) s.step = 3;
+                else if (!s.segment.length && s.step > 4) s.step = 4;
               }
             }
           } catch (e) {}
@@ -992,7 +1013,10 @@
             if (step === 3) return !!s.ticket && !!s.system;
             if (step === 4)
               return (
-                !!s.city.trim() && !!s.segment && !!s.timeline && !!s.capacity
+                !!s.city.trim() &&
+                s.segment.length > 0 &&
+                !!s.timeline &&
+                !!s.capacity
               );
             var approverOk = s.role !== "Team member" || !!s.approver.trim();
             return (
@@ -1017,7 +1041,8 @@
                 : "Tell us how follow-up is handled.";
             if (step === 4) {
               if (!s.city.trim()) return "Enter your city.";
-              if (!s.segment) return "Pick what your business deals in.";
+              if (!s.segment.length)
+                return "Pick at least one segment you deal in.";
               if (!s.timeline) return "Pick a timeline.";
               return "Answer the 48-hour visit question.";
             }
@@ -1072,6 +1097,14 @@
               .join("");
           }
 
+          function approverField() {
+            return (
+              '<input class="field reveal" id="fApprover" value="' +
+              esc(s.approver) +
+              '" aria-label="Who signs off" placeholder="Who signs off? Name &amp; designation" style="margin-bottom:11px">'
+            );
+          }
+
           function body() {
             if (s.step === 1)
               return (
@@ -1100,10 +1133,10 @@
             if (s.step === 3)
               return (
                 "" +
-                '<div class="q">What\'s a typical project worth to you?</div>' +
-                '<div class="qs">Average order value decides whether this pays for itself in one deal or ten.</div>' +
+                '<div class="q">What size project do you usually take?</div>' +
+                '<div class="qs">Your average project size decides whether this pays for itself in one deal or ten. Pick the band most of your work falls in.</div>' +
                 '<div class="opts">' +
-                optList(TICKETS, "ticket", { mark: true }) +
+                optList(TICKETS, "ticket", { mark: true, sm: true }) +
                 "</div>" +
                 '<div class="qs2">How is follow-up handled today?</div>' +
                 '<div class="opts wrap">' +
@@ -1119,9 +1152,10 @@
                 '<input class="field" id="fCity" aria-label="Your city" value="' +
                 esc(s.city) +
                 '" placeholder="City — e.g. Gurugram" autocomplete="address-level2" style="margin-bottom:16px">' +
-                '<div class="qs2" style="margin-top:0">Deals In</div>' +
+                '<div class="qs2" style="margin-top:0">What do you deal in?</div>' +
+                '<div class="qs">Pick all that apply — most businesses run more than one segment, and we hold your slot in each.</div>' +
                 '<div class="opts wrap" style="margin-bottom:4px">' +
-                optList(SEGS, "segment", { sm: true }) +
+                optList(SEGS, "segment", { multi: true, sm: true }) +
                 "</div>" +
                 '<div class="qs2">How soon do you want this running?</div>' +
                 '<div class="opts wrap">' +
@@ -1141,11 +1175,15 @@
               '<div class="opts wrap" style="margin-bottom:16px">' +
               optList(ROLES, "role", { sm: true }) +
               "</div>" +
-              (s.role === "Team member"
-                ? '<input class="field" id="fApprover" value="' +
-                  esc(s.approver) +
-                  '" aria-label="Who signs off" placeholder="Who signs off? Name &amp; designation" style="margin-bottom:11px">'
-                : "") +
+              /* The approver field appears and disappears with the role answer.
+                 It lives in a permanent wrapper that is filled in place — see
+                 syncApprover(). Re-rendering the whole step to reveal it made
+                 the form flash and replay its slide-in, which reads as a page
+                 reload and, inside the mobile sheet, threw the visitor back to
+                 the top of the step. */
+              '<div id="approverWrap">' +
+              (s.role === "Team member" ? approverField() : "") +
+              "</div>" +
               '<div class="opts">' +
               '<input class="field" id="fBusiness" aria-label="Business name" value="' +
               esc(s.business) +
@@ -1178,7 +1216,7 @@
               ["Business", s.business],
               ["Contact", s.name + " · " + s.phone],
               ["City", s.city],
-              ["Deals in", s.segment],
+              ["Deals in", s.segment.join(" · ")],
               ["Monthly enquiries", s.volume],
               ["Typical project", s.ticket],
               ["Start", s.timeline],
@@ -1288,6 +1326,45 @@
             syncBar();
           }
 
+          function bindText(el, key) {
+            if (!el) return;
+            el.addEventListener("input", function () {
+              markStart();
+              s[key] = el.value;
+              el.classList.remove("err");
+              save();
+              refreshCta();
+            });
+          }
+
+          function onEnter(e) {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              next();
+            }
+          }
+
+          /* Show or hide the approver field in place — no re-render, so the
+             answered options, the step's scroll position and any open keyboard
+             all survive. Switching away from "Team member" also clears the
+             answer, otherwise a name typed by mistake still reaches sales. */
+          function syncApprover() {
+            var wrap = $("#approverWrap");
+            if (!wrap) return;
+            var need = s.role === "Team member",
+              has = !!$("#fApprover");
+            if (need === has) return;
+            if (need) {
+              wrap.innerHTML = approverField();
+              var el = $("#fApprover");
+              bindText(el, "approver");
+              el.addEventListener("keydown", onEnter);
+            } else {
+              wrap.innerHTML = "";
+              s.approver = "";
+            }
+          }
+
           function bind() {
             $$("#wizard .opt").forEach(function (b) {
               b.addEventListener("click", function () {
@@ -1316,7 +1393,7 @@
                       o.setAttribute("aria-pressed", String(on));
                     },
                   );
-                  if (k === "role") return render();
+                  if (k === "role") syncApprover();
                 }
                 save();
                 refreshCta();
@@ -1329,15 +1406,7 @@
               ["#fBusiness", "business"],
               ["#fName", "name"],
             ].forEach(function (p) {
-              var el = $(p[0]);
-              if (!el) return;
-              el.addEventListener("input", function () {
-                markStart();
-                s[p[1]] = el.value;
-                el.classList.remove("err");
-                save();
-                refreshCta();
-              });
+              bindText($(p[0]), p[1]);
             });
             var ph = $("#fPhone");
             if (ph) {
@@ -1353,12 +1422,7 @@
               });
             }
             $$("#wizard .field").forEach(function (f) {
-              f.addEventListener("keydown", function (e) {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  next();
-                }
-              });
+              f.addEventListener("keydown", onEnter);
             });
 
             var cs = $("#fConsent");
@@ -1393,7 +1457,7 @@
                 s.ticket = "";
                 s.system = "";
                 s.city = "";
-                s.segment = "";
+                s.segment = [];
                 s.timeline = "";
                 s.capacity = "";
                 s.role = "";
@@ -1474,10 +1538,11 @@
             var v = 0;
             v +=
               {
-                "Under ₹3 lakh": 0,
-                "₹3 – 8 lakh": 2,
-                "₹8 – 20 lakh": 4,
-                "₹20 lakh+": 5,
+                "Under ₹5 lakh": 0,
+                "₹5 – 15 lakh": 2,
+                "₹15 – 25 lakh": 3,
+                "₹25 – 50 lakh": 4,
+                "₹50 lakh+": 5,
               }[s.ticket] || 0;
             v +=
               { "This month": 3, "In 1–3 months": 1, "Just exploring": 0 }[
@@ -1563,6 +1628,7 @@
             delete o.step;
             delete o.done;
             o.sources = s.sources.join(", ");
+            o.segment = s.segment.join(", ");
             o.phone = "+91" + mobile10(s.phone);
             o.consent = s.consent ? "yes" : "no";
             o.submittedAt = new Date().toISOString();
