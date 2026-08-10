@@ -6,16 +6,11 @@
    leadEndpoint : Formspree form endpoint (JSON POST). Same form the generic
                   funnel uses — premium leads carry funnel:"premium-funnel"
                   and a _subject line so they filter cleanly in the inbox.
-   whatsappNumber: country code + number, digits only. "" = disabled.
+   Call and WhatsApp both dial whichever rep (rajni/seema) this lead was
+   round-robin routed to — see callNumber(). No shared fallback number.
    ════════════════════════════════════════════════════════════ */
         var CONFIG = {
           leadEndpoint: "https://formspree.io/f/xwvjvrjr",
-          whatsappNumber: "918882314255",
-          /* "Call now" on the success screen dials the rep this lead was routed
-             to, so the first call lands on the person who already owns it. This
-             desk number is the last resort — used only when the round-robin API
-             didn't answer and nothing was stored from an earlier submission. */
-          fallbackPhone: "918882314255",
           /* Set `phone` to pin every call button to one fixed line instead,
              overriding round-robin routing. `phoneLabel`, when set, also shows
              the "we will call you from" card above the buttons. */
@@ -1260,7 +1255,7 @@
                   CONFIG.phoneLabel +
                   "</b><span>Save it so you don't miss the call.</span></div>"
                 : "") +
-              (CONFIG.whatsappNumber
+              (callNumber()
                 ? '<button type="button" class="btn btn-primary" id="waBtn" style="margin-top:16px">Send on WhatsApp too →</button>'
                 : "") +
               /* Call now sits directly under WhatsApp — full width, same 10px
@@ -1691,10 +1686,11 @@
             );
           }
 
-          /* Number behind every call button, most specific first: a pinned
-             CONFIG.phone, then the rep this lead was routed to, then the rep
-             stored on the last submission (a reload clears `routedPhone` but
-             the success screen still has to dial someone), then the desk. */
+          /* Number behind every call AND WhatsApp button, most specific first:
+             a pinned CONFIG.phone, then the rep (rajni/seema) this lead was
+             routed to, then the rep stored on the last submission (a reload
+             clears `routedPhone` but the success screen still has to dial
+             someone). No desk fallback — every lead belongs to one of the two. */
           function callNumber() {
             var p = (CONFIG.phone || routedPhone || "").replace(/\D/g, "");
             if (!p) {
@@ -1705,7 +1701,6 @@
                 p = ((last && last.routed_phone) || "").replace(/\D/g, "");
               } catch (e) {}
             }
-            if (!p) p = (CONFIG.fallbackPhone || "").replace(/\D/g, "");
             if (!p) return "";
             if (p.length === 10) p = "91" + p;
             return "+" + p;
@@ -1720,15 +1715,13 @@
           }
 
           function openWhatsApp() {
-            if (!CONFIG.whatsappNumber) {
-              toast("WhatsApp number not configured.");
+            var n = callNumber().replace(/\D/g, "");
+            if (!n) {
+              toast("No number available yet.");
               return;
             }
             window.open(
-              "https://wa.me/" +
-                CONFIG.whatsappNumber +
-                "?text=" +
-                encodeURIComponent(waText()),
+              "https://wa.me/" + n + "?text=" + encodeURIComponent(waText()),
               "_blank",
               "noopener",
             );
@@ -1826,7 +1819,7 @@
                 d.className = "fail";
                 d.innerHTML =
                   "<b>That didn't go through.</b> Your answers are saved — tap retry, or send them to us directly and we'll take it from there.";
-                if (CONFIG.whatsappNumber) {
+                if (callNumber()) {
                   var wa = document.createElement("button");
                   wa.type = "button";
                   wa.className = "btn btn-primary";
