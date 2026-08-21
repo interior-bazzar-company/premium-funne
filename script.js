@@ -28,26 +28,48 @@
           autoOpenAfterPct: 0,
         };
 
-        /* Round-robin sales number: same backend the generic funnel uses to attribute
-           a lead to whichever rep is next in rotation, so "lead_for"/"routed_phone"
-           on the payload below aren't blank on the Elite funnel either. Premium runs
-           against the staging API (stage.interiorbazzar.com), not the dev host the
-           generic funnel points at. Only advances on an actual submission. */
-        var PHONE_API =
-          "https://stage.interiorbazzar.com/api/v1/round-robin-phone/";
-        var routedPhone = null;
-        function fetchRoutedPhone() {
-          return fetch(PHONE_API)
+        /* ONE call does both jobs now: it creates the deal in the admin pipeline
+           and answers with the rep this lead was routed to, so "routed_phone" /
+           "lead_for" below and the Call/WhatsApp buttons all point at the person
+           who actually owns it. Replaces the old GET /round-robin-phone/, which
+           only ever handed back a number.
+
+           The rotation is PER FUNNEL and lives server-side: a generic-funnel
+           submission never spends a premium turn, and a number that already has
+           an open deal comes back with the rep it already has — same customer,
+           same salesperson, no second pipeline, no turn spent. That is why the
+           `funnel` key on the payload matters and must stay "premium-funnel".
+
+           Fails soft on purpose: a network error leaves routedPhone null, the
+           buttons fall back, and the Formspree submit below still runs — a dead
+           API must never cost us the lead. */
+        var DEAL_API = "https://stage.interiorbazzar.com/api/v1/funnel-lead/";
+        var routedPhone = null,
+          routedOwner = "",
+          dealRef = "";
+        function createDeal(lead) {
+          return fetch(DEAL_API, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(lead),
+          })
             .then(function (r) {
               return r.json();
             })
             .then(function (json) {
-              var num = json && json.data && json.data.phoneNumber;
-              if (num) routedPhone = String(num).replace(/\D/g, "");
+              var d = (json && json.data) || {};
+              if (d.phoneNumber)
+                routedPhone = String(d.phoneNumber).replace(/\D/g, "");
+              if (d.leadOwner) routedOwner = d.leadOwner;
+              if (d.ref) dealRef = d.ref;
             })
             .catch(function () {});
         }
-        // Map every round-robin phone number to the correct lead owner.
+        // Fallback owner lookup for when the API answered with a number but no
+        // name (an older build), or did not answer at all.
         var PHONE_TO_LEAD = {
           "9315663588": "rajni",
           "8920898168": "seema",
@@ -59,7 +81,7 @@
           return p;
         }
         function routedLeadOwner() {
-          return PHONE_TO_LEAD[routedPhone10()] || "unknown";
+          return routedOwner || PHONE_TO_LEAD[routedPhone10()] || "unknown";
         }
 
         var $ = function (s, c) {
@@ -1743,9 +1765,15 @@
             var fail = $("#sendFail");
             if (fail) fail.remove();
 
-            // Round-robin phone only advances here, once per actual submission.
-            fetchRoutedPhone().then(function () {
-              var data = payload();
+            /* The deal is created here and nowhere else — once per actual
+               submission, which is also the only thing that advances the premium
+               rotation. The routed rep comes back on that same call, so the
+               payload is stamped with it before anything else reads it. */
+            var data = payload();
+            createDeal(data).then(function () {
+              data.routed_phone = routedPhone || "";
+              data.lead_for = routedLeadOwner();
+              data.deal_ref = dealRef;
             window.__ibLead = data;
             try {
               localStorage.setItem(
