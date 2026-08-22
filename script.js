@@ -42,8 +42,13 @@
 
            Fails soft on purpose: a network error leaves routedPhone null, the
            buttons fall back, and the Formspree submit below still runs — a dead
-           API must never cost us the lead. */
-        var DEAL_API = "https://stage.interiorbazzar.com/api/v1/funnel-lead/";
+           API must never cost us the lead.
+
+           TESTING (2026-08-22): pointed at DEV so submissions land in
+           interior_bazzar_dev, which was wiped to zero for this. Flip the
+           hostname to prod.interiorbazzar.com once the flow checks out —
+           this line is the only switch. */
+        var DEAL_API = "https://dev.interiorbazzar.com/api/v1/funnel-lead/";
         var routedPhone = null,
           routedOwner = "",
           dealRef = "";
