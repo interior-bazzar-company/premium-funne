@@ -44,15 +44,32 @@
            buttons fall back, and the Formspree submit below still runs — a dead
            API must never cost us the lead.
 
-           TESTING (2026-08-22): pointed at DEV so submissions land in
-           interior_bazzar_dev, which was wiped to zero for this. Flip the
-           hostname to prod.interiorbazzar.com once the flow checks out —
-           this line is the only switch. */
-        var DEAL_API = "https://dev.interiorbazzar.com/api/v1/funnel-lead/";
+           LIVE (2026-08-22): PROD is the only answer that counts — the rep,
+           the ref and the number on the success screen all come from here.
+           DEAL_API_TEST is a copy of the same submission to dev so the flow
+           stays observable there; its response is DISCARDED and its failure is
+           invisible. Never read a routed number off it: dev runs its own
+           rotation and would hand the customer the wrong rep. */
+        var DEAL_API = "https://prod.interiorbazzar.com/api/v1/funnel-lead/";
+        var DEAL_API_TEST = "https://dev.interiorbazzar.com/api/v1/funnel-lead/";
         var routedPhone = null,
           routedOwner = "",
           dealRef = "";
         function createDeal(lead) {
+          /* Fire-and-forget mirror to dev. Deliberately not awaited and not
+             chained into the promise below: a dev outage must not delay or
+             fail a prod submission. */
+          try {
+            fetch(DEAL_API_TEST, {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(lead),
+              keepalive: true,
+            }).catch(function () {});
+          } catch (e) {}
           return fetch(DEAL_API, {
             method: "POST",
             headers: {
