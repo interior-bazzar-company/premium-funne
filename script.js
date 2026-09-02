@@ -1041,9 +1041,71 @@
             if (d.length > 10 && d.indexOf("91") === 0) d = d.slice(2);
             return d;
           }
+          /* 9999999999 and 9876543210 are valid on paper and fake in practice —
+             one repeated digit, or a straight run up or down the keypad. */
+          function allSame(w) {
+            for (var i = 1; i < w.length; i++) if (w[i] !== w[0]) return false;
+            return true;
+          }
+          function tripled(w) {
+            for (var i = 2; i < w.length; i++)
+              if (w[i] === w[i - 1] && w[i] === w[i - 2]) return true;
+            return false;
+          }
+          var ASC = "01234567890123456789",
+            DESC = "98765432109876543210";
+          function runOrRepeat(d) {
+            /* doubled ladders so wrap-arounds like 6789012345 count as runs too */
+            return allSame(d) || ASC.indexOf(d) > -1 || DESC.indexOf(d) > -1;
+          }
           function phoneOk(v) {
             var d = mobile10(v);
-            return d.length === 10 && /^[6-9]/.test(d);
+            return d.length === 10 && /^[6-9]/.test(d) && !runOrRepeat(d);
+          }
+
+          /* Keyboard mash, cheaply: real words in every Indian language written
+             in Latin script carry a vowel, never run a letter three times, and
+             are not a slice of one keyboard row. Catches asdf / qwerty / sdfgh /
+             aaaa without a dictionary. It is a filter, not a proof — "Xyz Ltd"
+             would be rejected and a determined faker types "abcd" and passes. */
+          var ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+          function mash(v) {
+            var w = String(v).toLowerCase().replace(/[^a-z]/g, "");
+            if (w.length < 2) return true;
+            if (!/[aeiou]/.test(w)) return true;
+            if (tripled(w)) return true;
+            return ROWS.some(function (r) {
+              return r.indexOf(w) > -1;
+            });
+          }
+          /* People's names: letters plus the joiners real names use. No digits,
+             no symbols — "Name 123" and "..." are not names. */
+          function nameOk(v) {
+            v = String(v || "").trim();
+            return v.length >= 2 && v.length <= 40 &&
+              /^[A-Za-zÀ-ɏ][A-Za-zÀ-ɏ .'-]*$/.test(v) &&
+              !mash(v);
+          }
+          /* Business names legitimately carry digits and & — "3D Interiors",
+             "S&K Decor" — so only the letter core is checked for mash. */
+          function bizOk(v) {
+            v = String(v || "").trim();
+            return v.length >= 2 && v.length <= 60 &&
+              /^[A-Za-z0-9À-ɏ][A-Za-z0-9À-ɏ &.,'-]*$/.test(v) &&
+              (v.match(/[A-Za-zÀ-ɏ]/g) || []).length >= 2 &&
+              !mash(v);
+          }
+          /* No whitelist: our SLOTS list is four cities and the market is tier-2. */
+          function cityOk(v) {
+            v = String(v || "").trim();
+            return v.length >= 3 && v.length <= 30 &&
+              /^[A-Za-zÀ-ɏ][A-Za-zÀ-ɏ -]*$/.test(v) &&
+              !mash(v);
+          }
+          /* ponytail: this funnel has no email field ("No email, no long form") —
+             nothing calls this yet. Wire it to the input if one is ever added. */
+          function emailOk(v) {
+            return /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(String(v || "").trim());
           }
 
           function valid(step) {
@@ -1052,17 +1114,17 @@
             if (step === 3) return !!s.ticket && !!s.system;
             if (step === 4)
               return (
-                !!s.city.trim() &&
+                cityOk(s.city) &&
                 s.segment.length > 0 &&
                 !!s.timeline &&
                 !!s.capacity
               );
-            var approverOk = s.role !== "Team member" || !!s.approver.trim();
+            var approverOk = s.role !== "Team member" || nameOk(s.approver);
             return (
               !!s.role &&
               approverOk &&
-              !!s.business.trim() &&
-              !!s.name.trim() &&
+              bizOk(s.business) &&
+              nameOk(s.name) &&
               phoneOk(s.phone) &&
               s.consent === true
             );
@@ -1080,16 +1142,17 @@
                 : "Tell us how follow-up is handled.";
             if (step === 4) {
               if (!s.city.trim()) return "Enter your city.";
+              if (!cityOk(s.city)) return "Enter a real city name.";
               if (!s.segment.length)
                 return "Pick at least one segment you deal in.";
               if (!s.timeline) return "Pick a timeline.";
               return "Answer the 48-hour visit question.";
             }
             if (!s.role) return "Tell us your role.";
-            if (s.role === "Team member" && !s.approver.trim())
-              return "Add who signs off.";
-            if (!s.business.trim()) return "Enter your business name.";
-            if (!s.name.trim()) return "Enter your name.";
+            if (s.role === "Team member" && !nameOk(s.approver))
+              return "Add the full name of who signs off.";
+            if (!bizOk(s.business)) return "Enter your real business name.";
+            if (!nameOk(s.name)) return "Enter your full name.";
             if (!phoneOk(s.phone))
               return "Enter a valid 10-digit mobile number.";
             return "Please tick the consent box so we can call you.";
@@ -1563,10 +1626,17 @@
             (map[s.step] || []).forEach(function (p) {
               var el = $(p[0]);
               if (!el) return;
-              var bad =
-                p[1] === "phone"
-                  ? !phoneOk(s.phone)
-                  : !String(s[p[1]]).trim();
+              /* approver only counts when their role demands one */
+              var chk = {
+                phone: phoneOk,
+                city: cityOk,
+                business: bizOk,
+                approver: function (v) {
+                  return s.role !== "Team member" || nameOk(v);
+                },
+                name: nameOk,
+              }[p[1]];
+              var bad = !chk(s[p[1]]);
               el.classList.toggle("err", bad);
             });
           }
