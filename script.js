@@ -70,25 +70,47 @@
               keepalive: true,
             }).catch(function () {});
           } catch (e) {}
-          return fetch(DEAL_API, {
-            method: "POST",
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(lead),
-          })
+          /* keepalive + ONE retry, because this is where a lead was lost on
+             6 Sep: prod answered the preflight, then the Facebook in-app
+             webview dropped the POST that followed, and the dev mirror above —
+             which has had keepalive all along — was the only copy that
+             survived. The retry is safe: the intake dedupes on phone, so a
+             retry after a response we never saw lands on the deal already
+             created, as a remark, with the same rep. */
+          function postDeal() {
+            return fetch(DEAL_API, {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(lead),
+              keepalive: true,
+            });
+          }
+          return postDeal()
+            .catch(function () {
+              return postDeal();
+            })
             .then(function (r) {
+              if (!r.ok) throw new Error("HTTP " + r.status);
               return r.json();
             })
             .then(function (json) {
-              var d = (json && json.data) || {};
+              /* Every refusal on this API is an HTTP 200 carrying
+                 response:false — a bad number, no stage vocabulary, an
+                 unhandled error. The envelope is the ONLY place a lost lead
+                 says it was lost, so it is what we read. REJECTS on it, so
+                 submit() can fall back to the inbox rather than call a lead
+                 delivered because the mirror went through. */
+              if (!json || json.response !== true)
+                throw new Error((json && json.message) || "refused");
+              var d = json.data || {};
               if (d.phoneNumber)
                 routedPhone = String(d.phoneNumber).replace(/\D/g, "");
               if (d.leadOwner) routedOwner = d.leadOwner;
               if (d.ref) dealRef = d.ref;
-            })
-            .catch(function () {});
+            });
         }
         // Fallback owner lookup for when the API answered with a number but no
         // name (an older build), or did not answer at all.
@@ -1862,7 +1884,20 @@
                rotation. The routed rep comes back on that same call, so the
                payload is stamped with it before anything else reads it. */
             var data = payload();
-            createDeal(data).then(function () {
+            /* TWO channels, one lead. The pipeline is the real destination;
+               Formspree is an inbox copy. The visitor sees a failure only when
+               BOTH refuse — Formspree's spam filter marks real leads often
+               enough that letting it decide alone told people their slot check
+               had failed while the deal was already in the pipeline. */
+            var dealOk = false;
+            createDeal(data).then(
+              function () { dealOk = true; },
+              function (err) {
+                /* Not silent any more: a lead that only exists in the inbox is
+                   a lead nobody is routed to. */
+                track("ib_deal_error", { reason: (err && err.message) || "network", step: 5 });
+              },
+            ).then(function () {
               data.routed_phone = routedPhone || "";
               data.lead_for = routedLeadOwner();
               data.deal_ref = dealRef;
@@ -1964,10 +1999,31 @@
             }
 
             if (!CONFIG.leadEndpoint) {
-              setTimeout(succeeded, 450);
+              setTimeout(dealOk ? succeeded : function () { failed("no_endpoint"); }, 450);
               return;
             }
 
+            /* Deal is in the pipeline: the visitor is done waiting. The inbox
+               copy still goes out, unwatched — it can no longer cost us a lead
+               we already have. */
+            if (dealOk) {
+              try {
+                fetch(CONFIG.leadEndpoint, {
+                  method: "POST",
+                  headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(data),
+                  keepalive: true,
+                }).catch(function () {});
+              } catch (e) {}
+              succeeded();
+              return;
+            }
+
+            /* The pipeline refused it, so Formspree is the only channel left and
+               it decides. */
             var settled = false,
               timer = setTimeout(function () {
                 if (!settled) {
