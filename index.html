@@ -28,6 +28,7 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 fbq('init', '1608366900698451');
 fbq('track', 'PageView');
 </script>
+
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q6V6SWBZDX"></script>
 <script>
@@ -36,6 +37,22 @@ fbq('track', 'PageView');
   gtag('js', new Date());
 
   gtag('config', 'G-Q6V6SWBZDX');
+</script>
+<!-- Event snippet for Submit lead form conversion page
+In your html page, add the snippet and call gtag_report_conversion when someone clicks on the chosen link or button. -->
+<script>
+function gtag_report_conversion(url) {
+  var callback = function () {
+    if (typeof(url) != 'undefined') {
+      window.location = url;
+    }
+  };
+  gtag('event', 'conversion', {
+      'send_to': 'AW-17550329844/QrygCNCv5pcdEPSP07BB',
+      'event_callback': callback
+  });
+  return false;
+}
 </script>
 <noscript><img height="1" width="1" style="display:none"
 src="https://www.facebook.com/tr?id=1608366900698451&ev=PageView&noscript=1"
